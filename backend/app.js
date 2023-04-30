@@ -3,14 +3,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var cors = require('cors')
+var cors = require('cors');
+var jwt = require('jsonwebtoken');
 
 var mainRouter = require("./routes/index");
+var secretKey = 'your_secret_key';
 
-
-
-var app = express()
-app.use(cors()) 
+var app = express();
+app.use(cors());
 
 // Set up mongoose connection
 const mongoose = require("mongoose");
@@ -20,10 +20,10 @@ const m = new mongoose.Mongoose();
 const mongoDB = "mongodb+srv://jajao:jajao12345@cluster0.fdardxf.mongodb.net/?retryWrites=true&w=majority";
 
 main().catch(err => console.log(err));
+
 async function main() {
   await mongoose.connect(mongoDB);
   await m.createConnection(mongoDB).dropCollection("users");
-
 }
 
 // view engine setup
@@ -40,6 +40,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/users', usersRouter);
 app.use("/", mainRouter); // Add catalog routes to middleware chain.
 
+// Middleware for authentication
+app.use(function(req, res, next) {
+  // check header or url parameters or post parameters for token
+  var token = req.headers['x-access-token'];
+  if (!token) {
+    return res.status(401).json({ auth: false, message: 'No token provided.' });
+  }
+
+  // verifies secret and checks exp
+  jwt.verify(token, secretKey, function(err, decoded) {
+    if (err) {
+      return res.status(401).json({ auth: false, message: 'Failed to authenticate token.' });
+    }
+
+    // if everything is good, save to request for use in other routes
+    req.userId = decoded.id;
+    next();
+  });
+});
+
 //Cors
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); 
@@ -48,7 +68,6 @@ app.use(function(req, res, next) {
   res.header('Access-Control-Expose-Headers', 'x-access-token, x-refresh-token');
   next();
 });
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -74,20 +74,24 @@ exports.find_User =  async (req, res) => {
     res.send(result);
   };
 
-exports.login = async (req, res) => {
-  const { username, password } = req.body;
-  
-  // Find the user in the database by username
-  const user = await User.findOne({ username });
-  
-  // If user is not found or password is incorrect, send error response
-  if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-
-  // Generate a JWT token for the authenticated user
-  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
-
-  // Send the token as a response
-  res.json({ token });
-};
+  exports.login = async (req, res, next) => {
+    const { username, password } = req.body;
+    try {
+      const user = await User.findOne({ username: username, password: password });
+      if (user) {
+        const token = jwt.sign({ userId: user._id }, "secret_key", { expiresIn: "1h" });
+        res.status(200).json({
+          token: token,
+          userId: user._id.toString()
+        });
+      } else {
+        res.status(401).json({
+          message: "Authentication failed"
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: "Authentication failed"
+      });
+    }
+  };
