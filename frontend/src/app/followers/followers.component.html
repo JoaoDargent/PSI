@@ -1,0 +1,8 @@
+<h2>Followers</h2>
+<div class="followers-menu">
+  <a *ngFor="let user of users"
+      routerLink="/users/${getIdLogin()}/followers">
+      {{user.name}}
+  </a>
+</div>
+<div class="back_button"> <button type="button" (click)="goBack()">go back</button></div>

@@ -1,0 +1,15 @@
+<div id="search-component">
+    <label for="search-box">Item Search</label>
+    <input #searchBox id="search-box" (input)="search(searchBox.value)" />
+
+    <ul class="search-result">
+      <li *ngFor="let item of items$ | async" >
+        <b routerLink="/itemsdetail/{{item.id}}">
+          {{item.name}}
+        </b>
+      </li>
+    </ul>
+    <p class="error-message" *ngIf="searchBox.value && (items$ | async)?.length === 0">
+      No items found.
+    </p>
+  </div>

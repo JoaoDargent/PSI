@@ -1,0 +1,8 @@
+<h2>Library</h2>
+<div class="library-menu">
+  <a *ngFor="let item of items"
+      routerLink="/users/${getIdLogin()}/library">
+      {{item.name}}
+  </a>
+</div>
+<div class="back_button"> <button type="button" (click)="goBack()">go back</button></div>
